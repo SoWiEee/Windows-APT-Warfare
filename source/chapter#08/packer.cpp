@@ -75,6 +75,7 @@ LPVOID compressData(LPVOID img, size_t imgSize, DWORD &outSize)
 		return out;
 }
 
+// 備份原始程式檔案映射的內容
 bool dumpMappedImgBin(char *buf, BYTE *&mappedImg, size_t *imgSize)
 {
 	PIMAGE_SECTION_HEADER stectionArr = getSectionArr(buf);
