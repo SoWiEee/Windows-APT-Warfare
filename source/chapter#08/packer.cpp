@@ -84,6 +84,7 @@ bool dumpMappedImgBin(char *buf, BYTE *&mappedImg, size_t *imgSize)
 	mappedImg = new BYTE[*imgSize];
 	memset(mappedImg, 0, *imgSize);
 
+	// 取得 File Header 的區段數量
 	for (size_t i = 0; i < getNtHdr(buf)->FileHeader.NumberOfSections; i++)
 		memcpy(mappedImg + stectionArr[i].VirtualAddress - stectionArr[0].VirtualAddress, buf + stectionArr[i].PointerToRawData, stectionArr[i].SizeOfRawData);
 	return true;
@@ -91,6 +92,7 @@ bool dumpMappedImgBin(char *buf, BYTE *&mappedImg, size_t *imgSize)
 
 void linkBin(char *buf, char *stub, size_t stubSize, BYTE *compressedImgData, size_t compressedDataSize)
 {
+	// 
 	WORD sizeOfOptionalHeader = getNtHdr(buf)->FileHeader.SizeOfOptionalHeader;
 	DWORD sectionAlignment = getNtHdr(buf)->OptionalHeader.SectionAlignment;
 	DWORD fileAlignment = getNtHdr(buf)->OptionalHeader.FileAlignment;
