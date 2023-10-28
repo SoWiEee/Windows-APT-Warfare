@@ -47,10 +47,12 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
     3) The end entity certificate has sufficient permission to sign code,
        as indicated by the presence of a code signing EKU or no EKU.
     */
+    // 被驗證的檔案室受到 Authenticode 規格簽署的數位簽章後的檔案
     GUID WVTPolicyGUID = WINTRUST_ACTION_GENERIC_VERIFY_V2;
     WINTRUST_DATA WinTrustData;
 
     // Initialize the WinVerifyTrust input data structure.
+    // 儲存後續呼叫 WinVerifyTrust 進行驗證時的參數
     memset(&WinTrustData, 0, sizeof(WinTrustData));       // Default all fields to 0.
     WinTrustData.cbStruct = sizeof(WinTrustData);
     WinTrustData.pPolicyCallbackData = NULL;              // Use default code signing EKU.
@@ -64,6 +66,7 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
     WinTrustData.dwUIContext = 0;
 
     // Set pFile.
+    // 
     WinTrustData.pFile = &FileData;
 
     // WinVerifyTrust verifies signatures as specified by the GUID and Wintrust_Data.
