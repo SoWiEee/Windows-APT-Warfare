@@ -17,6 +17,7 @@
 // Link with the Wintrust.lib file.
 #pragma comment (lib, "wintrust")
 
+// 驗證數位簽章
 BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
 {
     LONG lStatus;
@@ -27,7 +28,7 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
     WINTRUST_FILE_INFO FileData;
     memset(&FileData, 0, sizeof(FileData));
     FileData.cbStruct = sizeof(WINTRUST_FILE_INFO);
-    FileData.pcwszFilePath = pwszSourceFile;
+    FileData.pcwszFilePath = pwszSourceFile;    // 將 pcwszFilePath 欄位指向受驗證檔案的路徑
     FileData.hFile = NULL;
     FileData.pgKnownSubject = NULL;
 
@@ -168,6 +169,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
     if (argc > 1)
     {
+        // 讀入程式檔案，並進行校驗數位簽章，最後輸出結果
         VerifyEmbeddedSignature(argv[1]);
     }
 
