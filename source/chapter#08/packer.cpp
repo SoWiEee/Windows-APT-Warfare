@@ -79,7 +79,7 @@ LPVOID compressData(LPVOID img, size_t imgSize, DWORD &outSize)
 bool dumpMappedImgBin(char *buf, BYTE *&mappedImg, size_t *imgSize)
 {
 	PIMAGE_SECTION_HEADER stectionArr = getSectionArr(buf);
-	// 拿到 Optional Headers 長度
+	// 拿到 Optional Headers 長度，並計算第一區段長度
 	*imgSize = getNtHdr(buf)->OptionalHeader.SizeOfImage - stectionArr[0].VirtualAddress; // start with the first section data.
 	mappedImg = new BYTE[*imgSize];
 	memset(mappedImg, 0, *imgSize);
