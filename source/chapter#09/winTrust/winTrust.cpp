@@ -70,6 +70,7 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
     WinTrustData.pFile = &FileData;
 
     // WinVerifyTrust verifies signatures as specified by the GUID and Wintrust_Data.
+    // 驗證採用的 COM Interface(GUID) 與 WINTRUST_DATA，並取得回傳值 
     lStatus = WinVerifyTrust(
         NULL,
         &WVTPolicyGUID,
