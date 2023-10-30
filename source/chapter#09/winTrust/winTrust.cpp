@@ -75,7 +75,11 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
         NULL,
         &WVTPolicyGUID,
         &WinTrustData);
-    // (1) CryptSIPDllIsMyFileType: 依序確認傳入檔案是否為 PE/Catalog/CTL/Cabinet，並回傳對應 SIP 接口的GUID序號
+    /*
+        (1) CryptSIPDllIsMyFileType: 依序確認傳入檔案是否為 PE/Catalog/CTL/Cabinet，並回傳對應 SIP 接口的 GUID 序號
+        (2) CryptSIPGetSignedDataMsg: 以對應 SIP 接口從當前檔案提取簽名資訊
+        (3) CryptSIPVetifyIndirectData: 計算當前檔案的 hash 結果當作指紋，並與簽名資訊比對
+    */
     switch (lStatus)
     {
     case ERROR_SUCCESS:
