@@ -75,7 +75,7 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
         NULL,
         &WVTPolicyGUID,
         &WinTrustData);
-
+    // (1) CryptSIPDllIsMyFileType: 依序確認傳入檔案是否為 PE/Catalog/CTL/Cabinet，並回傳對應 SIP 接口的GUID序號
     switch (lStatus)
     {
     case ERROR_SUCCESS:
