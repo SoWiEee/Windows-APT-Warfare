@@ -18,6 +18,7 @@ int main(void) {
 	PEB remotePeb;
 
 	char dummyCmdline[MAX_PATH]; /* AAA... 260 bytes */
+	// 生成用不到的參數，由 260 bytes 大量 'A' 字串組成，以挪出足夠的字串記憶體空間
 	memset(dummyCmdline, 'A', sizeof(dummyCmdline));
 
 	wchar_t new_szCmdline[] = L"/c whoami & echo P1ay Win32 L!k3 a K!ng. & sleep 100";
