@@ -11,14 +11,14 @@ BYTE *MapFileToMemory(LPCSTR filename, LONGLONG &filelen)
 	FILE *fileptr;
 	BYTE *buffer;
 
-	fileptr = fopen(filename, "rb"); // Open the file in binary mode
+	fileptr = fopen(filename, "rb");	// 開啟檔案（binary mode）
 	fseek(fileptr, 0, SEEK_END);	 // Jump to the end of the file
 	filelen = ftell(fileptr);		 // Get the current byte offset in the file
 	rewind(fileptr);				 // Jump back to the beginning of the file
 
-	buffer = (BYTE *)malloc((filelen + 1) * sizeof(char)); // Enough memory for file + \0
+	buffer = (BYTE *)malloc((filelen + 1) * sizeof(char));	// 分配動態記憶體（file + \0）
 	fread(buffer, filelen, 1, fileptr);					   // Read in the entire file
-	fclose(fileptr);									   // Close the file
+	fclose(fileptr);
 	return buffer;
 }
 
@@ -28,9 +28,11 @@ BYTE *rippedCert(const char *fromWhere, LONGLONG &certSize)
 	BYTE *signedPeData = MapFileToMemory(fromWhere, signedPeDataLen);
 
 	auto ntHdr = PIMAGE_NT_HEADERS(&signedPeData[PIMAGE_DOS_HEADER(signedPeData)->e_lfanew]);
+	// 解析 Security Directory 指向的 Authenticode 簽名訊息塊
 	auto certInfo = ntHdr->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
 	certSize = certInfo.Size;
 
+	// 拷貝一份給 certData
 	BYTE *certData = new BYTE[certInfo.Size];
 	memcpy(certData, &signedPeData[certInfo.VirtualAddress], certInfo.Size);
 	return certData;
