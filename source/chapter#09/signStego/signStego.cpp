@@ -32,10 +32,10 @@ int main(int argc, char** argv) {
 
 	// read signed pe file & payload
 	LONGLONG signedPeDataLen = 0, payloadSize = 0;
-	BYTE *signedPeData = MapFileToMemory(argv[1], signedPeDataLen), \
-		 *payloadData  = MapFileToMemory(argv[2], payloadSize);
+	BYTE *signedPeData = MapFileToMemory(argv[1], signedPeDataLen), // 將數位簽名程式檔案內容晚整讀至變數 signedPeDataLen
+		 *payloadData  = MapFileToMemory(argv[2], payloadSize);	// 將欲藏匿的資料檔案內容完整讀至變數 payloadData 中
 
-	// prepare space for output pe file.
+	// 申請一塊足夠大的空間 outputPeData 欲於儲存暫存即將輸出的 PE 程式檔案內容
 	BYTE* outputPeData = new BYTE[signedPeDataLen + payloadSize];
 	memcpy(outputPeData, signedPeData, signedPeDataLen);
 	auto ntHdr = PIMAGE_NT_HEADERS(&outputPeData[PIMAGE_DOS_HEADER(outputPeData)->e_lfanew]);
