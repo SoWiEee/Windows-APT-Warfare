@@ -80,8 +80,8 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
         (2) CryptSIPGetSignedDataMsg: 以對應 SIP 接口從當前檔案提取簽名資訊
         (3) CryptSIPVetifyIndirectData: 計算當前檔案的 hash 結果當作指紋，並與簽名資訊比對
     */
-    switch (lStatus)
-    {
+    switch (lStatus){
+    // 傳入檔案的數位簽章驗證通過，且檔案無損毀或遭竄改的疑慮
     case ERROR_SUCCESS:
         /*
         Signed file:
@@ -100,7 +100,7 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
             L"was verified.\n",
             pwszSourceFile);
         break;
-
+    // 傳入檔案的簽名內容不存在或其數位簽章無效
     case TRUST_E_NOSIGNATURE:
         // The file was not signed or had a signature 
         // that was not valid.
@@ -123,9 +123,8 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
                 L"verify the signature of the \"%s\" file.\n",
                 pwszSourceFile);
         }
-
         break;
-
+    // 
     case TRUST_E_EXPLICIT_DISTRUST:
         // The hash that represents the subject or the publisher 
         // is not allowed by the admin or user.
