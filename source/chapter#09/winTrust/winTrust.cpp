@@ -124,20 +124,20 @@ BOOL VerifyEmbeddedSignature(LPCWSTR pwszSourceFile)
                 pwszSourceFile);
         }
         break;
-    // 
+    // 傳入檔案的數位簽章驗證通過，但該簽名效力被簽署人或當前用戶禁用從而無效
     case TRUST_E_EXPLICIT_DISTRUST:
         // The hash that represents the subject or the publisher 
         // is not allowed by the admin or user.
         wprintf_s(L"The signature is present, but specifically "
             L"disallowed.\n");
         break;
-
+    // 該安裝該簽名之證書到本地系統時，被用戶手動阻止，導致此簽名不被信任
     case TRUST_E_SUBJECT_NOT_TRUSTED:
         // The user clicked "No" when asked to install and run.
         wprintf_s(L"The signature is present, but not "
             L"trusted.\n");
         break;
-
+    // 該簽名證書當前被網管設下的群組原則禁用、指紋計算結果不吻合當前傳入檔案、時間戳記異常等
     case CRYPT_E_SECURITY_SETTINGS:
         /*
         The hash that represents the subject or the publisher
