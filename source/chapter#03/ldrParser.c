@@ -85,9 +85,12 @@ typedef struct _LDR_DATA_TABLE_ENTRY32
 } LDR_DATA_TABLE_ENTRY32, *PLDR_DATA_TABLE_ENTRY32;
 
 size_t GetModHandle(wchar_t *libName) {
+	// 從 fs[0x30] 處獲取 PEB 的動態位址，並取出內容
 	PEB32 *pPEB = (PEB32 *)__readfsdword(0x30); // ds: fs[0x30]
+	// 取得 PEB_LDR_DATA 的 LIST_ENTRY 結構的 InMemoryOrderModuleList 的位址作為 header
 	PLIST_ENTRY header = &(pPEB->Ldr->InMemoryOrderModuleList);
 
+	// 遍歷每個 PEB_LDR_DATA 節點，最後回到原點
 	for (PLIST_ENTRY curr = header->Flink; curr != header; curr = curr->Flink) {
 		LDR_DATA_TABLE_ENTRY32 *data = CONTAINING_RECORD(
 			curr, LDR_DATA_TABLE_ENTRY32, InMemoryOrderLinks
