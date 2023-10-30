@@ -22,22 +22,26 @@ int main(void) {
 	memset(dummyCmdline, 'A', sizeof(dummyCmdline));
 
 	wchar_t new_szCmdline[] = L"/c whoami & echo P1ay Win32 L!k3 a K!ng. & sleep 100";
+	// 用 CreateProcess 將 Windows 自帶的 32bitcmd.exe 建立為 Thread 暫停狀態
+	// 將剛剛生成的垃圾參數當作 cmd.exe 被傳入的參數
 	CreateProcessA("C:/Windows/SysWOW64/cmd.exe", dummyCmdline, 0, 0, 0, CREATE_SUSPENDED, 0, 0, &SI, &PI);
+	// 用 GetThreadContext 取得當下暫停住 Theard 之暫存器內容
 	GetThreadContext(PI.hThread, &CTX);
 
-	// fetch current PEB struct of the child process.
+	// 用 ReadProcessMemory 將 child Process 的 PEB 內容取出
 	ReadProcessMemory(PI.hProcess, LPVOID(CTX.Ebx), &remotePeb, sizeof(remotePeb), 0);
 
-	// read RTL_USER_PROCESS_PARAMETERS struct data.
+	// 在 PEB 中 ProcessParameters 欄位取得當前 child process 的 RTL_USER_PROCESS_PARAMETERS 結構的位址
 	auto paramStructAt = LPVOID(remotePeb.ProcessParameters);
+	// 以 ReadProcessMemory 將 RTL_USER_PROCESS_PARAMETERS 結構的內容讀取回來
 	ReadProcessMemory(PI.hProcess, paramStructAt, &parentParamIn, sizeof(parentParamIn), 0);
 
 	// change current cmdline of the child process.
+	// 以 WriteProcessMemory 將想執行的文字參數覆寫上去
 	WriteProcessMemory(PI.hProcess, parentParamIn.CommandLine.Buffer, new_szCmdline, sizeof(new_szCmdline), 0);
 
 	// resume main thread of the child process.
+	// 恢復 Thread 運作
 	ResumeThread(PI.hThread);
 	return 0;
 }
-
-
