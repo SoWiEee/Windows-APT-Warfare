@@ -46,6 +46,7 @@ int main(int argc, char **argv) {
 	}
 	// signature from where?
 	LONGLONG certSize;
+	// 將 Authenticode 簽名訊息，從具數位簽章的 PE 檔案拷貝一份下來
 	BYTE *certData = rippedCert(argv[1], certSize);
 
 	// payload data prepare.
@@ -53,6 +54,7 @@ int main(int argc, char **argv) {
 	BYTE *payloadPeData = MapFileToMemory(argv[2], payloadSize);
 
 	// append signature to payload.
+	// 準備一份
 	BYTE *finalPeData = new BYTE[payloadSize + certSize];
 	memcpy(finalPeData, payloadPeData, payloadSize);
 
