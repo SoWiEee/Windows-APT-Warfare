@@ -92,10 +92,12 @@ size_t GetModHandle(wchar_t *libName) {
 
 	// 遍歷每個 PEB_LDR_DATA 節點，最後回到原點
 	for (PLIST_ENTRY curr = header->Flink; curr != header; curr = curr->Flink) {
+		// 使用 CONTAINING_RECORD 來扣掉 offset，以取得 ENTRY:0x00 的位址
 		LDR_DATA_TABLE_ENTRY32 *data = CONTAINING_RECORD(
 			curr, LDR_DATA_TABLE_ENTRY32, InMemoryOrderLinks
 		);
 		printf("current node: %ls\n", data->BaseDllName.Buffer);
+		// 回傳 DllBase 紀錄的 ImageBase
 		if (StrStrIW(libName, data->BaseDllName.Buffer))
 			return data->DllBase;
 	}
@@ -103,9 +105,11 @@ size_t GetModHandle(wchar_t *libName) {
 }
 
 int main(int argc, char** argv, char* envp) {
+	// 使用自製函式搜尋記憶體上 kernel32.dll 的 ImageBase
 	HMODULE kernelBase = (HMODULE)GetModHandle(L"kernel32.dll");
 	printf("kernel32.dll base @ %p\n", kernelBase);
-	
+
+	// 透過 ImageBase 找出 module 上 WinExec 導出函數的位址
 	size_t ptr_WinExec = (size_t)GetProcAddress(kernelBase, "WinExec");
 	((UINT(WINAPI*)(LPCSTR, UINT))ptr_WinExec)("calc", SW_SHOW);
 
