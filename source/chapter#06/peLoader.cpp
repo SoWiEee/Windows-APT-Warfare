@@ -26,18 +26,19 @@ bool readBinFile(const char fileName[], char **bufPtr, size_t &length)
 
 void fixIat(char *peImage)
 {
-	auto dir_ImportTable = getNtHdr(peImage)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+	auto dir_ImportTable = getNtHdr(peImage)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];	// get IAT
 	auto impModuleList = (IMAGE_IMPORT_DESCRIPTOR *)&peImage[dir_ImportTable.VirtualAddress];
 	for (HMODULE currMod; impModuleList->Name; impModuleList++)
 	{
 		printf("\timport module : %s\n", &peImage[impModuleList->Name]);
+		// load needed DLLs
 		currMod = LoadLibraryA(&peImage[impModuleList->Name]);
 
 		auto arr_callVia = (IMAGE_THUNK_DATA *)&peImage[impModuleList->FirstThunk];
 		for (int count = 0; arr_callVia->u1.Function; count++, arr_callVia++)
 		{
 			auto curr_impApi = (PIMAGE_IMPORT_BY_NAME)&peImage[arr_callVia->u1.Function];
-			arr_callVia->u1.Function = (size_t)GetProcAddress(currMod, (char *)curr_impApi->Name);
+			arr_callVia->u1.Function = (size_t)GetProcAddress(currMod, (char *)curr_impApi->Name);	// get API address and fill IAT
 			if (count < 5)
 				printf("\t\t- fix imp_%s\n", curr_impApi->Name);
 		}
@@ -54,15 +55,15 @@ typedef struct BASE_RELOCATION_ENTRY
 
 void fixReloc(char *peImage)
 {
-	auto dir_RelocTable = getNtHdr(peImage)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+	auto dir_RelocTable = getNtHdr(peImage)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];		// get relocation table
 	auto relocHdrBase = &peImage[dir_RelocTable.VirtualAddress];
 	for (UINT hdrOffset = 0; hdrOffset < dir_RelocTable.Size;)
 	{
-		auto relocHdr = (IMAGE_BASE_RELOCATION *)&relocHdrBase[hdrOffset];
+		auto relocHdr = (IMAGE_BASE_RELOCATION *)&relocHdrBase[hdrOffset];	// composed of many IMAGE_BASE_RELOCATION (block, 4KiB)
 		entry *entryList = (entry *)((size_t)relocHdr + sizeof(*relocHdr));
 		for (size_t i = 0; i < (relocHdr->SizeOfBlock - sizeof(*relocHdr)) / sizeof(entry); i++)
 		{
-			size_t rva_Where2Patch = relocHdr->VirtualAddress + entryList[i].Offset;
+			size_t rva_Where2Patch = relocHdr->VirtualAddress + entryList[i].Offset;	// calculate RVA
 			if (entryList[i].Type == RELOC_32BIT_FIELD)
 			{
 				*(UINT32 *)&peImage[rva_Where2Patch] -= (size_t)getNtHdr(peImage)->OptionalHeader.ImageBase;
@@ -70,8 +71,8 @@ void fixReloc(char *peImage)
 			}
 			else if (entryList[i].Type == RELOC_64BIT_FIELD)
 			{
-				*(UINT64 *)&peImage[rva_Where2Patch] -= (size_t)getNtHdr(peImage)->OptionalHeader.ImageBase;
-				*(UINT64 *)&peImage[rva_Where2Patch] += (size_t)peImage;
+				*(UINT64 *)&peImage[rva_Where2Patch] -= (size_t)getNtHdr(peImage)->OptionalHeader.ImageBase;	// calculate offset
+				*(UINT64 *)&peImage[rva_Where2Patch] += (size_t)peImage;					// add actual base
 			}
 		}
 		hdrOffset += relocHdr->SizeOfBlock;
@@ -80,15 +81,16 @@ void fixReloc(char *peImage)
 
 void peLoader(char *exeData)
 {
-	auto imgBaseAt = (void *)getNtHdr(exeData)->OptionalHeader.ImageBase;
-	auto imgSize = getNtHdr(exeData)->OptionalHeader.SizeOfImage;
-	bool relocOk = !!getNtHdr(exeData)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress;
+	auto imgBaseAt = (void *)getNtHdr(exeData)->OptionalHeader.ImageBase;	// get ImageBase
+	auto imgSize = getNtHdr(exeData)->OptionalHeader.SizeOfImage;		// get ImageSize
+	bool relocOk = !!getNtHdr(exeData)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress;	// check relocation table
 
 	char *peImage = (char *)VirtualAlloc(relocOk ? 0 : imgBaseAt, imgSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	if (peImage)
 	{
 		printf("[v] exe file mapped @ %p\n", peImage);
-		memcpy(peImage, exeData, getNtHdr(exeData)->OptionalHeader.SizeOfHeaders);
+		memcpy(peImage, exeData, getNtHdr(exeData)->OptionalHeader.SizeOfHeaders);	// copy Header
+		// mapping all sections
 		for (int i = 0; i < getNtHdr(exeData)->FileHeader.NumberOfSections; i++)
 		{
 			auto curr_section = getSectionArr(exeData)[i];
