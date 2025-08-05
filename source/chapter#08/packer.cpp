@@ -39,6 +39,7 @@ typedef NTSTATUS(WINAPI *XRtlGetCompressionWorkSpaceSize)(USHORT CompressionForm
 
 LPVOID compressData(LPVOID img, size_t imgSize, DWORD &outSize)
 {
+	// use buildin API to compress
 	DWORD(WINAPI * fnRtlGetCompressionWorkSpaceSize)
 	(USHORT, PULONG, PULONG) =
 		(DWORD(WINAPI *)(USHORT, PULONG, PULONG))(
@@ -50,6 +51,7 @@ LPVOID compressData(LPVOID img, size_t imgSize, DWORD &outSize)
 			GetProcAddress(LoadLibraryA("ntdll"), "RtlCompressBuffer"));
 
 	ULONG uCompressBufferWorkSpaceSize, uCompressFragmentWorkSpaceSize;
+	// use LZNT1 algorithm to compress
 	if (fnRtlGetCompressionWorkSpaceSize(
 			COMPRESSION_FORMAT_LZNT1,
 			&uCompressBufferWorkSpaceSize,
@@ -75,7 +77,7 @@ LPVOID compressData(LPVOID img, size_t imgSize, DWORD &outSize)
 		return out;
 }
 
-// 備份原始程式檔案映射的內容
+// mapping all sections into memory
 bool dumpMappedImgBin(char *buf, BYTE *&mappedImg, size_t *imgSize)
 {
 	PIMAGE_SECTION_HEADER stectionArr = getSectionArr(buf);
@@ -163,6 +165,7 @@ int main(int argc, char **argv)
 	printf("    - output PE file at %s\n", outputFileName);
 	char *buf;
 	DWORD filesize;
+	// read PE into buf
 	if (!readBinFile(in_peFilePath, &buf, filesize))
 	{
 		puts("    - fail to read input PE binary.");
@@ -192,6 +195,7 @@ int main(int argc, char **argv)
 
 	char *x86_Stub;
 	DWORD len_x86Stub;
+	// read Stub (unpacking tool)
 	if (!readBinFile("stub.bin", &x86_Stub, len_x86Stub))
 	{
 		puts("[x] stub binary not found. haven't compile it yet?");
